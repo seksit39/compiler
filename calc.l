@@ -12,8 +12,8 @@
 
 [ \t]	; // ignore all whitespace
 [0-9]+\.[0-9]+ 	{yylval.fval = atof(yytext); return T_FLOAT;}
-[0-9]+		{yylval.ival = atoi(yytext); return T_INT;}
-[a-f0-9]+"h" {yylval.ival = strtol(yytext, 0, 16); return T_INT;}
+[0-9]+		{yylval.ival = atoi(yytext); return number;}
+[a-f0-9]+"h" {yylval.ival = strtol(yytext, 0, 16); return number;}
 "$r"+[A-Z]    {yylval.id = yytext[2]; return identifier;}
 "$acc"  {return Answer;}
 "showhex"  {return ShowHex;}
@@ -30,14 +30,14 @@
 "is"    {return IS;}
 ([\r\n]+[\t]+)+?[\r\n]+	{return T_NEWLINE;}
 "="     {return EQUAL;}
-"+"		{return T_PLUS;}
-"-"		{return T_MINUS;}
-"*"		{return T_MULTIPLY;}
-"/"		{return T_DIVIDE;}
-"("		{return T_LEFT;}
-")"		{return T_RIGHT;}
+"+"		{return plus;}
+"-"		{return minus;}
+"*"		{return multiply;}
+"/"		{return divide;}
+"("		{return left_parenthesis;}
+")"		{return right_parenthesis;}
 "^"     {return T_RAISED;}
-"%"     {return T_MOD;}
+"%"     {return mod;}
 "exit"	{return T_QUIT;}
 "int"   {return INT;}
 "float" {return FLOAT;}

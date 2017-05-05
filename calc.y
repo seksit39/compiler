@@ -88,17 +88,17 @@ void ChangeString(char *s);
 	char id;
 }
 
-%token<ival> T_INT IF For
+%token<ival> number IF For
 %token<fval> T_FLOAT
 %token<ival> identifier
 %token<id> Answer 
 %token<s> String
 %token<id> Show Load Push Pop Top Size Char ShowHex
-%token T_PLUS T_MINUS T_MULTIPLY T_DIVIDE T_LEFT T_RIGHT IS  INT FLOAT  Str OPENLOOP ENDLOOP
+%token plus minus multiply divide left_parenthesis right_parenthesis IS  INT FLOAT  Str OPENLOOP ENDLOOP
 %token T_NEWLINE T_QUIT Single_Quotes Double_Quotes  MoreThan MoreThan_EQUAL LessThan LessThan_EQUAL ELSE
-%left AND OR NOT EQUAL Not_EQUAL
-%left T_PLUS T_MINUS
-%left T_MULTIPLY T_DIVIDE T_MOD
+%left_parenthesis AND OR NOT EQUAL Not_EQUAL
+%left_parenthesis plus minus
+%left_parenthesis multiply divide mod
 %right T_RAISED
 
 %type<ival> expression
@@ -253,7 +253,7 @@ line: T_NEWLINE
 		{
 			regByte[$1] = (abs(count_byte-8)+1)*8;
 			char temp[100];
-			sprintf(temp,"\tmov     BYTE PTR [rbp-%d], %d",regByte[$1],$4);
+			sprintf(temp,"\tmovs     BYTE PTR [rbp-%d], %d",regByte[$1],$4);
 			append(temp,code);
 			count_byte  = regByte[$1];
 		}	
@@ -269,26 +269,26 @@ line: T_NEWLINE
 
 mixed_expression: T_FLOAT                 			 
 	{ $$ = $1; }
-	  | mixed_expression T_PLUS mixed_expression	 	{ $$ = $1 + $3; }
-	  | mixed_expression T_MINUS mixed_expression	 	{ $$ = $1 - $3; }
-	  | mixed_expression T_MULTIPLY mixed_expression 	{ $$ = $1 * $3; }
-	  | mixed_expression T_DIVIDE mixed_expression	 	{ $$ = $1 / $3; }
+	  | mixed_expression plus mixed_expression	 	{ $$ = $1 + $3; }
+	  | mixed_expression minus mixed_expression	 	{ $$ = $1 - $3; }
+	  | mixed_expression multiply mixed_expression 	{ $$ = $1 * $3; }
+	  | mixed_expression divide mixed_expression	 	{ $$ = $1 / $3; }
 	  | mixed_expression T_RAISED mixed_expression   	{ $$ = pow ($1, $3);}
-	  | mixed_expression T_MOD	mixed_expression	{ $$ = fmod($1,$3);}
-	  | T_LEFT mixed_expression T_RIGHT		 	{ $$ = $2; }
+	  | mixed_expression mod	mixed_expression	{ $$ = fmod($1,$3);}
+	  | left_parenthesis mixed_expression right_parenthesis		 	{ $$ = $2; }
 	  | expression T_RAISED mixed_expression         	{ $$ = pow ($1, $3);}
-	  | expression T_PLUS mixed_expression	 	     	{ $$ = $1 + $3; }
-	  | expression T_MINUS mixed_expression	 	     	{ $$ = $1 - $3; }
-	  | expression T_MULTIPLY mixed_expression 	     	{ $$ = $1 * $3; }
-	  | expression T_DIVIDE mixed_expression	    	{ $$ = $1 / $3; }
-	  | expression T_MOD mixed_expression		    	{ $$ = fmod($1,$3);}
-	  | mixed_expression T_PLUS expression	 	    	{ $$ = $1 + $3; }
-	  | mixed_expression T_MINUS expression	 	    	{ $$ = $1 - $3; }
-	  | mixed_expression T_MULTIPLY expression 	   	{ $$ = $1 * $3; }
-	  | mixed_expression T_DIVIDE expression	   	{ $$ = $1 / $3; }
+	  | expression plus mixed_expression	 	     	{ $$ = $1 + $3; }
+	  | expression minus mixed_expression	 	     	{ $$ = $1 - $3; }
+	  | expression multiply mixed_expression 	     	{ $$ = $1 * $3; }
+	  | expression divide mixed_expression	    	{ $$ = $1 / $3; }
+	  | expression mod mixed_expression		    	{ $$ = fmod($1,$3);}
+	  | mixed_expression plus expression	 	    	{ $$ = $1 + $3; }
+	  | mixed_expression minus expression	 	    	{ $$ = $1 - $3; }
+	  | mixed_expression multiply expression 	   	{ $$ = $1 * $3; }
+	  | mixed_expression divide expression	   	{ $$ = $1 / $3; }
 	  | mixed_expression T_RAISED expression       		{ $$ = pow ($1, $3);}
-	  | mixed_expression T_MOD expression		   	{ $$ = fmod($1,$3);}
-	  | expression T_DIVIDE expression		 	{ $$ = $1 / (float)$3; }
+	  | mixed_expression mod expression		   	{ $$ = fmod($1,$3);}
+	  | expression divide expression		 	{ $$ = $1 / (float)$3; }
 ;
 
 
@@ -302,7 +302,7 @@ assginValue: identifier
 		}
 		else{printf("ERROR Not math type\n");} 
 	}
-	| assginValue T_PLUS assginValue  	
+	| assginValue plus assginValue  	
 	{ 
 		$$ = $1 + $3;
 		num = ((count_byte%4)+2)*4;
@@ -314,7 +314,7 @@ assginValue: identifier
 		append(temp,code);
 		count_byte = num;
 	}
-	| assginValue T_PLUS expression		
+	| assginValue plus expression		
 	{ 
 		$$ = $1 + $3;
 		num = ((count_byte%4)+2)*4;
@@ -327,7 +327,7 @@ assginValue: identifier
 		append(temp,code);
 		count_byte = num;
 	}
-	| assginValue T_MINUS assginValue  	
+	| assginValue minus assginValue  	
 	{ 	$$ = $1 - $3;
 		num = ((count_byte%4)+2)*4;
 		char temp[100];
@@ -340,7 +340,7 @@ assginValue: identifier
 		append(temp,code);
 		count_byte = num;
 	}
-	| assginValue T_MINUS expression 
+	| assginValue minus expression 
 	{ 
 		$$ = $1-$3;
 		num = ((count_byte%4)+2)*4;
@@ -353,7 +353,7 @@ assginValue: identifier
 		append(temp,code);
 		count_byte = num;
 	}
-	| assginValue T_MULTIPLY assginValue  
+	| assginValue multiply assginValue  
 	{ 
 		$$ = $1 * $3;
 		num = ((count_byte%4)+2)*4;
@@ -364,7 +364,7 @@ assginValue: identifier
 		append(temp,code);
 		count_byte = num;
 	}
-	| assginValue T_MULTIPLY expression  
+	| assginValue multiply expression  
 	{ 
 		$$ = $1 * $3;
 		num = ((count_byte%4)+2)*4;
@@ -379,7 +379,7 @@ assginValue: identifier
 		append(temp,code);
 		count_byte = num;
 	}
-	| assginValue T_DIVIDE assginValue    
+	| assginValue divide assginValue    
 	{ 
 		$$ = $1 / $3;
 		num = ((count_byte%4)+2)*4;
@@ -392,7 +392,7 @@ assginValue: identifier
 		append(temp,code);
 		count_byte = num;
 	}
-	| assginValue T_DIVIDE expression		
+	| assginValue divide expression		
 	{ 
 		$$ = $1/$3;
 		num = ((count_byte%4)+2)*4;
@@ -408,7 +408,7 @@ assginValue: identifier
 		count_byte = num;
 	  
 	}
-	| assginValue T_MOD assginValue    	
+	| assginValue mod assginValue    	
 	{ 	$$ = fmod($1 ,$3);
 		num = ((count_byte%4)+2)*4;
 		char temp[100];
@@ -420,7 +420,7 @@ assginValue: identifier
 		append(temp,code);
 		count_byte = num;
 	}
-	| assginValue T_MOD expression    	
+	| assginValue mod expression    	
 	{ 
 		$$ = fmod($1 ,$3);
 		num = ((count_byte%4)+2)*4;
@@ -449,21 +449,21 @@ assginValue: identifier
 		append(temp,code);
 		count_byte = num;
 	}
-	| T_LEFT assginValue T_RIGHT		 	
+	| left_parenthesis assginValue right_parenthesis		 	
 	{ 
 		$$ = $2; 
 	}	 
 ;
 
 
-expression: T_INT				{ $$ = $1; }
-	  | expression T_PLUS expression	{ $$ = $1 + $3; }
-	  | expression T_MINUS expression	{ $$ = $1 - $3; }
-	  | expression T_MULTIPLY expression	{ $$ = $1 * $3; }
-	  | T_LEFT expression T_RIGHT		{ $$ = $2; }
+expression: number				{ $$ = $1; }
+	  | expression plus expression	{ $$ = $1 + $3; }
+	  | expression minus expression	{ $$ = $1 - $3; }
+	  | expression multiply expression	{ $$ = $1 * $3; }
+	  | left_parenthesis expression right_parenthesis		{ $$ = $2; }
 	  | expression T_RAISED expression  	{ $$ = pow ($1, $3); }
-	  | expression T_MOD expression     	{ $$ = fmod($1,$3);}
-	  | T_MINUS expression 			{ $$ = -$2;}
+	  | expression mod expression     	{ $$ = fmod($1,$3);}
+	  | minus expression 			{ $$ = -$2;}
 	  | expression AND expression		{ $$ = $1 && $3;}
 	  | expression OR expression 		{ $$ = $1 || $3;}
 	  | NOT expression			{ $$ = !$2;}
